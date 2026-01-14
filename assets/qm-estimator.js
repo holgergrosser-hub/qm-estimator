@@ -1,4 +1,4 @@
-// QM Estimator – Auto-Update + Farbe
+// QM Estimator – Auto-Update + Farbe + Vergleich + URL-Params + LocalStorage
 // Haltung: ISO 9001 verlangt i.d.R. keine neuen Prozesse. Wir beschreiben bestehende Praxis.
 
 const INDUSTRY_LABELS = {
@@ -16,6 +16,20 @@ const SIZE_LABELS = {
   "21-50": "21–50",
   "51-100": "51–100",
   "100+": "über 100"
+};
+
+// Vergleichsdaten: TÜV/DEKRA vs. OnlineCert
+const COMPARISON_DATA = {
+  "1-5":   { tuev: { duration: "3–5 Monate", cost: "6.000–10.000 €" }, onlinecert: { duration: "3–4 Wochen", cost: "ab 1.990 €" }},
+  "6-20":  { tuev: { duration: "4–6 Monate", cost: "8.000–14.000 €" }, onlinecert: { duration: "4–5 Wochen", cost: "ab 2.490 €" }},
+  "21-50": { tuev: { duration: "5–7 Monate", cost: "12.000–20.000 €" }, onlinecert: { duration: "5–6 Wochen", cost: "ab 3.490 €" }},
+  "51-100":{ tuev: { duration: "6–9 Monate", cost: "18.000–30.000 €" }, onlinecert: { duration: "6–8 Wochen", cost: "ab 4.990 €" }},
+  "100+":  { tuev: { duration: "9–12 Monate", cost: "> 35.000 €" }, onlinecert: { duration: "8–12 Wochen", cost: "individuell" }}
+};
+
+const CTA_URLS = {
+  beratung: "https://qm-guru.de/iso-9001-kosten-berechnen/",
+  zertifizierung: "https://onlinecert.info/angebot-fuer-nicht-akkreditierte-zertifizierung/"
 };
 
 const QM_ESTIMATES = {
@@ -292,6 +306,43 @@ function trackEvent(name, params = {}){
   }
 }
 
+// URL-Parameter aktualisieren (ohne Reload)
+function updateUrlParams(industry, size){
+  const url = new URL(window.location);
+  url.searchParams.set("branche", industry);
+  url.searchParams.set("size", size);
+  window.history.replaceState({}, "", url);
+}
+
+// URL-Parameter auslesen
+function getUrlParams(){
+  const params = new URLSearchParams(window.location.search);
+  return {
+    industry: params.get("branche") || "",
+    size: params.get("size") || ""
+  };
+}
+
+// LocalStorage speichern
+function saveToLocalStorage(industry, size){
+  try {
+    localStorage.setItem("qm_estimator_industry", industry);
+    localStorage.setItem("qm_estimator_size", size);
+  } catch(e) { /* Privacy-Modus */ }
+}
+
+// LocalStorage auslesen
+function getFromLocalStorage(){
+  try {
+    return {
+      industry: localStorage.getItem("qm_estimator_industry") || "",
+      size: localStorage.getItem("qm_estimator_size") || ""
+    };
+  } catch(e) {
+    return { industry: "", size: "" };
+  }
+}
+
 function resolveEstimate(industry, size){
   const est = QM_ESTIMATES?.[industry]?.[size];
   if (!est){
@@ -302,8 +353,6 @@ function resolveEstimate(industry, size){
 
 function initEstimator(root){
   const headline = root.dataset.headline || "ISO-9001-Aufwand einschätzen – in 60 Sekunden";
-  const contactUrl = root.dataset.contactUrl || "/kontakt/";
-  const ctaLabel = root.dataset.ctaLabel || "Kostenlos prüfen, was bereits ISO-9001-konform ist";
 
   const headlineEl = root.querySelector(".qm-estimator__headlineText");
   if (headlineEl) headlineEl.textContent = headline;
@@ -318,12 +367,23 @@ function initEstimator(root){
   let startTracked = false;
   let lastRenderedKey = "";
 
+  // Gespeicherte Werte laden (URL hat Priorität vor LocalStorage)
+  const urlParams = getUrlParams();
+  const stored = getFromLocalStorage();
+  const initialIndustry = urlParams.industry || stored.industry;
+  const initialSize = urlParams.size || stored.size;
+
   function maybeRender(){
     industry = industrySelect.value;
     if (!(industry && size)) return;
 
     const renderKey = industry + "|" + size;
     const est = resolveEstimate(industry, size);
+    const comp = COMPARISON_DATA[size] || {};
+
+    // URL und LocalStorage aktualisieren
+    updateUrlParams(industry, size);
+    saveToLocalStorage(industry, size);
 
     if (!startTracked){
       startTracked = true;
@@ -337,10 +397,50 @@ function initEstimator(root){
     const tip = est.tip ? `<p><strong>Praxis-Tipp:</strong> ${escapeHtml(est.tip)}</p>` : "";
     const note = est.note ? `<p><strong>Hinweis:</strong> ${escapeHtml(est.note)}</p>` : "";
 
+    // Vergleichsbox HTML
+    const comparisonHtml = comp.tuev ? `
+      <div class="comparison">
+        <div class="comparison__header">
+          <span class="comparison__badge">⚡ Vergleich: Zertifizierungsweg</span>
+        </div>
+        <div class="comparison__grid">
+          <div class="comparison__card comparison__card--slow">
+            <div class="comparison__icon">🐢</div>
+            <div class="comparison__title">Akkreditiert (TÜV, DEKRA…)</div>
+            <div class="comparison__row">
+              <span class="comparison__label">Dauer:</span>
+              <span class="comparison__value">${escapeHtml(comp.tuev.duration)}</span>
+            </div>
+            <div class="comparison__row">
+              <span class="comparison__label">Kosten:</span>
+              <span class="comparison__value">${escapeHtml(comp.tuev.cost)}</span>
+            </div>
+          </div>
+          <div class="comparison__card comparison__card--fast">
+            <div class="comparison__ribbon">70% sparen</div>
+            <div class="comparison__icon">🚀</div>
+            <div class="comparison__title">OnlineCert (nicht-akkreditiert)</div>
+            <div class="comparison__row">
+              <span class="comparison__label">Dauer:</span>
+              <span class="comparison__value comparison__value--highlight">${escapeHtml(comp.onlinecert.duration)}</span>
+            </div>
+            <div class="comparison__row">
+              <span class="comparison__label">Kosten:</span>
+              <span class="comparison__value comparison__value--highlight">${escapeHtml(comp.onlinecert.cost)}</span>
+            </div>
+          </div>
+        </div>
+        <p class="comparison__note">
+          <strong>Nicht-akkreditiert</strong> = Gleiche ISO-Norm, ohne DAkkS-Akkreditierung. 
+          Ideal wenn Kunden kein akkreditiertes Zertifikat fordern.
+        </p>
+      </div>
+    ` : "";
+
     resultBox.innerHTML = `
       <div class="kpi">
         <div class="kpi__card">
-          <div class="kpi__label">⏱️ Typischer Aufwand</div>
+          <div class="kpi__label">⏱️ Typischer Beratungsaufwand</div>
           <div class="kpi__value">${escapeHtml(est.duration)}</div>
         </div>
         <div class="kpi__card">
@@ -353,8 +453,19 @@ function initEstimator(root){
       ${paragraphs}
       ${tip}
       ${note}
+      
+      ${comparisonHtml}
+      
       <div class="tag">✅ Keine neuen Prozesse – bestehende Praxis beschreiben</div>
-      <a class="qm-estimator__cta" href="${escapeHtml(contactUrl)}">${escapeHtml(ctaLabel)} →</a>
+      
+      <div class="cta-group">
+        <a class="qm-estimator__cta qm-estimator__cta--primary" href="${escapeHtml(CTA_URLS.beratung)}" target="_blank" data-cta="beratung">
+          📋 Kostenloses Beratungsangebot →
+        </a>
+        <a class="qm-estimator__cta qm-estimator__cta--secondary" href="${escapeHtml(CTA_URLS.zertifizierung)}" target="_blank" data-cta="zertifizierung">
+          🚀 Direkt zur Online-Zertifizierung →
+        </a>
+      </div>
     `;
 
     if (placeholderBox) placeholderBox.hidden = true;
@@ -365,12 +476,17 @@ function initEstimator(root){
       trackEvent("qm_estimate_result", { industry, size, duration: est.duration, cost: est.cost, page_path: window.location.pathname });
     }
 
-    const cta = resultBox.querySelector(".qm-estimator__cta");
-    if (cta){
+    // CTA-Tracking für beide Buttons
+    resultBox.querySelectorAll(".qm-estimator__cta").forEach(cta => {
       cta.addEventListener("click", () => {
-        trackEvent("qm_estimate_contact_click", { industry, size, page_path: window.location.pathname });
+        trackEvent("qm_estimate_cta_click", { 
+          industry, 
+          size, 
+          cta_type: cta.dataset.cta,
+          page_path: window.location.pathname 
+        });
       }, { once: true });
-    }
+    });
   }
 
   function setActiveSize(val){
@@ -381,6 +497,16 @@ function initEstimator(root){
 
   industrySelect.addEventListener("change", maybeRender);
   sizeButtons.forEach(btn => btn.addEventListener("click", () => setActiveSize(btn.dataset.size)));
+
+  // Gespeicherte Werte beim Start anwenden
+  if (initialIndustry && INDUSTRY_LABELS[initialIndustry]) {
+    industrySelect.value = initialIndustry;
+  }
+  if (initialSize && SIZE_LABELS[initialSize]) {
+    setActiveSize(initialSize);
+  } else if (initialIndustry) {
+    maybeRender();
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
