@@ -7,36 +7,36 @@
   <meta name="description" content="Schnelle Ersteinschätzung: Aufwand zur Beschreibung bestehender Praxis nach ISO 9001. Keine neuen Prozesse erfinden."/>
   <link rel="stylesheet" href="assets/qm-estimator.css" />
 </head>
-
 <body>
   <main class="wrap">
     <header class="hero">
-      <h1>ISO-9001-Aufwand einschätzen – in 60 Sekunden</h1>
+      <div class="badge">QM-Guru • ISO 9001</div>
+      <h1>ISO-9001-Aufwand einschätzen – in 10 Sekunden</h1>
       <p class="lead">
-        ISO 9001 verlangt in der Regel keine neuen Prozesse. Die Anforderungen werden im Alltag meist bereits erfüllt.
-        Der Aufwand entsteht vor allem dadurch, das Vorhandene zu <strong>beschreiben</strong>, zu <strong>strukturieren</strong>
-        und <strong>nachvollziehbar darzustellen</strong> – nicht mehr und nicht weniger.
+        ISO 9001 verlangt in der Regel keine neuen Prozesse.
+        Der Aufwand entsteht dadurch, das Vorhandene zu
+        <strong>beschreiben</strong>, zu <strong>strukturieren</strong>
+        und <strong>nachvollziehbar darzustellen</strong>.
       </p>
     </header>
 
-    <section
-      class="qm-estimator"
+    <section class="qm-estimator"
       data-contact-url="/kontakt/"
       data-cta-label="Kostenlos prüfen, was bereits ISO-9001-konform ist"
-      data-headline="ISO-9001-Aufwand einschätzen – in 60 Sekunden"
-    >
+      data-headline="ISO-9001-Aufwand einschätzen – in 60 Sekunden">
+
       <div class="qm-estimator__card">
         <h2 class="qm-estimator__headline">🔍 <span class="qm-estimator__headlineText"></span></h2>
 
         <p class="qm-estimator__sub">
-          Wähle <strong>Branche</strong> und <strong>Mitarbeiterzahl</strong> – du erhältst eine realistische Orientierung
-          zum typischen Aufwand und Kostenrahmen, um bestehende Arbeitsweisen nach ISO 9001 nachvollziehbar zu beschreiben.
+          Wähle <strong>Branche</strong> und <strong>Mitarbeiterzahl</strong> –
+          die Einschätzung erscheint automatisch.
         </p>
 
         <div class="qm-estimator__fields">
           <label class="qm-estimator__label">
             <span>Branche</span>
-            <select class="qm-estimator__industry" aria-label="Branche auswählen">
+            <select class="qm-estimator__industry">
               <option value="">Bitte auswählen …</option>
               <option value="service">Dienstleistung</option>
               <option value="craft">Handwerk</option>
@@ -49,7 +49,7 @@
 
           <fieldset class="qm-estimator__sizes">
             <legend>Mitarbeiterzahl</legend>
-            <div class="qm-estimator__sizeButtons" role="group" aria-label="Mitarbeiterzahl wählen">
+            <div class="qm-estimator__sizeButtons">
               <button type="button" data-size="1-5">1–5</button>
               <button type="button" data-size="6-20">6–20</button>
               <button type="button" data-size="21-50">21–50</button>
@@ -59,28 +59,28 @@
           </fieldset>
         </div>
 
-        <button type="button" class="qm-estimator__btn" disabled>
-          Einschätzung anzeigen
-        </button>
-
         <p class="qm-estimator__microcopy">
-          Die Einschätzung dient der Orientierung. Sie bezieht sich auf den Aufwand zur Beschreibung bestehender Praxis
-          (keine neuen Prozesse erfinden).
+          Die Einschätzung dient der Orientierung.
+          Es werden keine neuen Prozesse erfunden.
         </p>
+
+        <div class="qm-estimator__result qm-estimator__result--placeholder">
+          <div class="placeholder">
+            <div class="placeholder__dot"></div>
+            <div>
+              <strong>Bitte auswählen</strong><br/>
+              Branche & Mitarbeiterzahl
+            </div>
+          </div>
+        </div>
 
         <div class="qm-estimator__result" hidden></div>
       </div>
-    </section>
-
-    <section class="notes">
-      <h2>Hinweis</h2>
-      <ul>
-        <li>Die Werte sind konservative Orientierungswerte. Standortanzahl, Dokumentationsstand und Kundenanforderungen können den Aufwand verändern.</li>
-        <li>Tracking: Falls <code>gtag</code> oder <code>dataLayer</code> vorhanden sind, werden Events gesendet (Start/Ergebnis/CTA-Klick).</li>
-      </ul>
     </section>
   </main>
 
   <script src="assets/qm-estimator.js"></script>
 </body>
 </html>
+
+
